@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/css/selectize.default.min.css" />
+
+    <style>
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        box-sizing: border-box;
+      }
+      *, *:before, *:after {
+        box-sizing: inherit;
+      }
+
+      #map {
+        position: absolute;
+        top: 50px;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+
+      .leaflet-layer, .leaflet-pane, .leaflet-tile-container {
+        width: 100%;
+        height: 100%;
+      }
+
+      #legend {
+        color: rgba(0, 0, 0, 0.75);
+      }
+
+      #time {
+        display: none;
+      }
+
+      .fill-control {
+        background-color: #505050;
+      }
+
+      .control-container {
+        padding: 0 0 0 40px;
+      }
+
+      #range {
+        position: absolute;
+	    top: 15px;
+	    left: 303px;
+	    width: 380px;
+	    height: 14px;
+	    opacity: 0;
+	    cursor: pointer;
+      }
+
+      input[type=range]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 30px;
+        cursor: pointer;
+        box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+        background: #3071a9;
+        border-radius: 1.3px;
+        border: 0.2px solid #010101;
+      }
+
+      input[type=range]:focus::-webkit-slider-runnable-track {
+        background: #367ebd;
+      }
+
+      input[type=range]::-moz-range-track {
+        width: 100%;
+        height: 30px;
+        cursor: pointer;
+      }
+
+      input[type=range]::-ms-track {
+        width: 100%;
+        height: 30px;
+        cursor: pointer;
+        display: none;
+      }
+      input[type=range]::-ms-fill-lower {
+        background: #2a6495;
+        border: 0.2px solid #010101;
+        border-radius: 2.6px;
+        box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+        display: none;
+      }
+      input[type=range]:focus::-ms-fill-lower {
+        background: #3071a9;
+        display: none;
+      }
+      input[type=range]::-ms-fill-upper {
+        background: #3071a9;
+        border: 0.2px solid #010101;
+        border-radius: 2.6px;
+        box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+        display: none;
+      }
+      input[type=range]:focus::-ms-fill-upper {
+        background: #367ebd;
+        display: none;
+      }
+
+      ::-ms-tooltip {
+        display: none;
+      }
+
+      .playback {
+        background-repeat: no-repeat;
+        width: 30px;
+        height: 30px;
+        border-color: #fff;
+        background-image: url(play.svg);
+        background-size: 28px;
+        background-color: #2D2D2D;
+        border-width: 1px;
+        border-style: solid;
+        border-radius: 100px;
+        margin-right: 0;
+      }
+
+      .playback.pause {
+        background-image: url(pause.svg);
+        background-color: #257D98;
+        border-color: #257D98;
+      }
+
+      .playback:hover {
+        background-color: #373737;
+      }
+
+      .lifted {
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.20);
+      }
+
+      h2 {
+        margin-top: 0;
+      }
+
+      #controls {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        z-index: 3000;
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 14px;
+        background-color: #2d2d2d;
+        height: 50px;
+      }
+
+      #buttons {
+        overflow: auto;
+        zoom: 1;
+        border-left: 1px solid rgba(255, 255, 255, 0.24);
+        padding: 10px 10px 10px 13px;
+        margin-top: -14px;
+        float: left;
+      }
+
+      #buttons-year {
+        float: left;
+        padding-left: 10px;
+      }
+
+      #button-play {
+        float: left;
+        cursor: pointer;
+        outline: 0;
+      }
+
+      #buttons-year button {
+        height: 30px;
+        cursor: pointer;
+        border: 0;
+        background-color: transparent;
+        outline: 0;
+        padding: 6px;
+      }
+
+      #buttons-year button.active {
+        background-color: #257D98;
+        cursor: default;
+      }
+
+      #buttons-year button[disabled] {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      button {
+        border-radius: 3px;
+        font-size: 15px;
+        color: #fff;
+        margin-right: 4px;
+      }
+
+      button:last-child {
+        margin-right: 0;
+      }
+
+      button::-moz-focus-inner {
+        border: 0;
+        padding: 0;
+      }
+
+      .map-hidden {
+        display: none;
+      }
+
+      body {
+        font-family: graphik, sans-serif;
+        font-size: 15px;
+      }
+
+      select {
+        height: 20px;
+      }
+
+      #select {
+        width: 230px;
+        float: left;
+      }
+
+      body #select .selectize-input {
+        font-size: 15px;
+        margin-bottom: 15px;
+        background-color: red;
+        background: transparent;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0);
+        padding: 3px 0 7px;
+        box-shadow: none;
+        border-bottom-width: 0 !important;
+      }
+
+      .selectize-input input {
+        color: #fff;
+      }
+
+      .selectize-input.dropdown-active::before {
+        background: transparent;
+      }
+
+      .selectize-control.single .selectize-input:after {
+        position: absolute;
+        top: 0px;
+        right: 10px;
+        width: 22px;
+        height: 25px;
+        border-style: solid;
+        border-width: 0 !important;
+        background-size: 20px;
+        transform: rotate(90deg);
+        background-image: url(play.svg);
+        margin-top: 0 !important;
+      }
+
+      .container {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        min-width: 700px;
+      }
+
+      path.leaflet-interactive {
+        stroke: #257d98;
+        stroke-width: 5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: #257d98;
+        fill-opacity: 0.5;
+      }
+
+
+      </style>
+    <!--[if IE]>
+        <link rel="stylesheet" type="text/css" href="ie.css" />
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+      <div id="controls" class="dark fill-navy center pin-topleft z1 pad1 col3">
+        <h2 id="time">2019</h2>
+        <div id="select"></div>
+        <div id="buttons">
+          <button id="button-play" class="button playback play"></button>
+          <span id="buttons-year"></span>
+        </div>
+        <div class="clearfix space-bottom">
+          <div>
+            <div class="pad1y pad2x contain round-right">
+              <input id="range" class="col12" type="range" min="0" max="7" step="1" value="7">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="map"></div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/js/standalone/selectize.min.js"></script>
+    <!-- <script src="https://npmcdn.com/@turf/turf/turf.min.js"></script> -->
+    <script src="main.js"></script>
+  </body>
+</html>
